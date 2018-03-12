@@ -1,0 +1,220 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "This is the API and the model definition for the FIWOO'S microservice of Rules.",
+    "version": "1.0",
+    "title": "Rules Microservice",
+    "license": {
+      "name": "Apache License Version 2.0"
+    }
+  },
+  "host": "platform.fiwoo.eu",
+  "basePath": "/api/rules",
+  "tags": [
+    {
+      "name": "perseo-controller",
+      "description": "Perseo Controller"
+    }
+  ],
+  "paths": {
+    "/statements/advanced/add": {
+      "post": {
+        "tags": [
+          "perseo-controller"
+        ],
+        "summary": "addRule",
+        "operationId": "addRuleUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/addRule"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/AddResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/statements": {
+      "get": {
+        "tags": [
+          "perseo-controller"
+        ],
+        "summary": "getRules",
+        "operationId": "getRulesUsingGET",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/getRules"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "perseo-controller"
+        ],
+        "summary": "deleteRule",
+        "operationId": "deleteRuleUsingDELETE",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "rule_id",
+            "in": "query",
+            "description": "rule_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ResponseEntity"
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "ResponseEntity": {
+      "type": "object",
+      "properties": {
+        "body": {
+          "type": "object"
+        },
+        "statusCode": {
+          "type": "string",
+          "enum": [
+            "200",
+            "201",
+            "400"
+          ]
+        },
+        "statusCodeValue": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "AddResponse": {
+      "type": "object",
+      "properties": {
+        "subscription": {
+          "type": "object",
+          "properties": {
+            "subscriptionResponse": {
+              "type": "object",
+              "properties": {
+                "subscriptionId": {
+                  "type": "string"
+                },
+                "duration": {
+                  "type": "string"
+                },
+                "thottling": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "perseo": {
+          "type": "object"
+        },
+        "database": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "getRules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "rule_id": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "string"
+          },
+          "rule_name": {
+            "type": "string"
+          },
+          "rule_description": {
+            "type": "string"
+          },
+          "rule": {
+            "type": "string"
+          },
+          "orion_id": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "addRule": {
+      "type": "object",
+      "properties": {
+        "rule": {
+          "type": "object"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

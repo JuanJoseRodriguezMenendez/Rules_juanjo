@@ -1,5 +1,10 @@
 package restAPI;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.nio.file.Files;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,6 +37,47 @@ public class PerseoController {
 		auth.model.User loggedUser = AuthUtils.getUser();	
 		String result = logic.getRulesOfUser(loggedUser.getId().toString()); 
 		return ResponseEntity.status(HttpStatus.OK).body(result);
+	}
+    
+	@RequestMapping(method = RequestMethod.GET, value = "/swagger", headers="Accept=application/json")
+	public ResponseEntity  getSwagger() {
+		File archivo = null;
+	      FileReader fr = null;
+	      BufferedReader br = null;
+    	  String SwaggerJson="";
+
+
+	      try {
+	         // Apertura del fichero y creacion de BufferedReader para poder
+	         // hacer una lectura comoda (disponer del metodo readLine()).
+	    	 SwaggerJson="";
+	         archivo = new File ("Rules-External_Actions\\src\\main\\resources\\Rules_perseo_Swagger_With_Tokens.json");
+	         fr = new FileReader (archivo);
+	         br = new BufferedReader(fr);
+
+	         // Lectura del fichero
+	         String linea;
+	         while((linea=br.readLine())!=null)
+	            SwaggerJson=SwaggerJson+"\n"+linea;
+	        	 //System.out.println(linea);
+	         System.out.println(SwaggerJson);
+	      }
+	      catch(Exception e){
+	         e.printStackTrace();
+	      }finally{
+	         // En el finally cerramos el fichero, para asegurarnos
+	         // que se cierra tanto si todo va bien como si salta 
+	         // una excepcion.
+	         try{                    
+	            if( null != fr ){   
+	               fr.close();     
+	            }                  
+	         }catch (Exception e2){ 
+	            e2.printStackTrace();
+	         }
+	      }
+		return ResponseEntity.status(HttpStatus.OK).body(SwaggerJson);
+		
 	}	
 	
 	// Post Method
