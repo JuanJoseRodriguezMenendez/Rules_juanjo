@@ -61,7 +61,7 @@ public class PerseoController {
 	         // hacer una lectura comoda (disponer del metodo readLine()).
 	    	 String absolutePath=new File("").getAbsolutePath();
 	    	 SwaggerJson="";
-	         archivo = new File (absolutePath+"\\src\\main\\resources\\Rules_perseo_Swagger_With_Tokens.json");
+	         archivo = new File (absolutePath + File.separator + "src" + File.separator + "main" + File.separator + "resources" + File.separator +"Rules_perseo_Swagger_With_Tokens.json");
 	         fr = new FileReader (archivo);
 	         br = new BufferedReader(fr);
 
