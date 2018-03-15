@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.UnsupportedEncodingException;
-import java.nio.file.Files;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -168,6 +167,6 @@ public class PerseoController {
 		} catch (JWTDecodeException exception){
 		    //Invalid token
 		}
-		return jwtHeader;
+		return user_id;
 	}
 }
