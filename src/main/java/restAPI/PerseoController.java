@@ -4,7 +4,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.UnsupportedEncodingException;
-import java.util.Base64;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import org.apache.commons.codec.binary.Base64;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -152,13 +155,15 @@ public class PerseoController {
 			Object user = gson.fromJson(serializedUser, Object.class);
 			LinkedTreeMap<Object, Object> user_map = (LinkedTreeMap<Object, Object>) user;
 			user_id = (String) user_map.get("id").toString();
+			byte[] encodedBytes = Base64.encodeBase64(user_id.getBytes());
+			user_id = new String(encodedBytes);
 		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		} 
 		return user_id;
 	}
 }
