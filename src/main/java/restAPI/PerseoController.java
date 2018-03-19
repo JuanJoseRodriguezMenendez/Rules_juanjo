@@ -45,7 +45,7 @@ public class PerseoController {
 		
 		//String jwtHeader="eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.eusFgDqmqIg3_c8buW6ohKCKILHI2Q3ImIoEjSr2Ih42RikUorPy-AntxBrtt82Fc1lnJD9HwF5wnuY76Ezehw";	
 		
-		String result = logic.getRulesOfUser(decodeUserIdFromJWT(jwtHeader)); 
+		String result = logic.getRulesOfUser(decodeUserIdFromJWT(jwtHeader));
 		return ResponseEntity.status(HttpStatus.OK).body(result);
 	}
     
@@ -101,17 +101,6 @@ public class PerseoController {
 	@RequestMapping(value = "/statements/advanced/add", method = RequestMethod.POST, headers="Accept=application/json", consumes = {"application/json"})
 	@ResponseBody
 	public ResponseEntity addRule(@RequestBody String body, @RequestHeader("X-Authorization-s4c") String jwtHeader) throws IllegalArgumentException, UnsupportedEncodingException {		
-		//HMAC
-		Algorithm algorithmHS = Algorithm.HMAC512(SECRET);
-		
-		try {
-		    DecodedJWT jwt = JWT.decode(jwtHeader);
-		    String subject = jwt.getSubject();
-		    System.out.println(subject);
-		} catch (JWTDecodeException exception){
-		    //Invalid token
-		}
-		
 		Gson gson = new GsonBuilder().serializeNulls().create();
 		gson.serializeNulls();
 		Object body_aux = gson.fromJson(body, Object.class);
@@ -145,6 +134,7 @@ public class PerseoController {
 	}
 	
 	private String decodeUserIdFromJWT(String jwtHeader) {
+		jwtHeader = jwtHeader.replace("Bearer ","");
 		String user_id = "";
 		//HMAC
 		try {
@@ -153,6 +143,7 @@ public class PerseoController {
 			        .withIssuer("s4c.microservices.authorization")
 			        .build(); //Reusable verifier instance
 			DecodedJWT jwt = verifier.verify(jwtHeader);
+			
 		    //DecodedJWT jwt = JWT.decode(jwtHeader);
 		    // user is inside the jwt in the sub field
 		    String serializedUser = jwt.getSubject();
@@ -160,8 +151,7 @@ public class PerseoController {
 			gson.serializeNulls();
 			Object user = gson.fromJson(serializedUser, Object.class);
 			LinkedTreeMap<Object, Object> user_map = (LinkedTreeMap<Object, Object>) user;
-			user_id = (String) user_map.get("id");
-			 
+			user_id = (String) user_map.get("id").toString();
 		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
