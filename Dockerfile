@@ -4,7 +4,7 @@ RUN apt-get update
 RUN apt-get install -y maven
 
 WORKDIR /
-EXPOSE 4444
+EXPOSE 5000
 ADD . /opt/
 WORKDIR /opt/
 RUN ["mvn", "clean"]
