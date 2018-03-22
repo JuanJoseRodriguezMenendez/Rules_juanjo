@@ -148,6 +148,35 @@ public class PerseoController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 	}
 
+	@RequestMapping(value = "/statements/basic/add", method = RequestMethod.POST, produces= {MediaType.APPLICATION_JSON_VALUE,APPLICATION_JSON_LD,APPLICATION_JSON_NGSI})
+	@ResponseBody
+	public ResponseEntity addBasicRule(@RequestBody String body, @RequestHeader("X-Authorization-s4c") String jwtHeader) throws IllegalArgumentException, UnsupportedEncodingException {		
+		String  acceptHeader= context.getHeader("Accept");
+		String description = "no description";
+		JsonParser jp = new JsonParser();
+		JsonObject jo=(JsonObject) jp.parse(body);
+		
+		String advancedRule=AdvancedRulesGenerator.ruleConstructor(jo.toString());
+		if(jo.get("description")!=null) {
+			description = jo.get("description").toString();
+		}
+		String response = logic.parseAdvancedRule(AdvancedRulesGenerator.getJson(advancedRule, "rule").toString(), decodeUserIdFromJWT(jwtHeader), description);
+		//**
+		if(acceptHeader.equals("application/ld+json")) {
+			response = transformJsonLd(response);
+			if (response.contains("\"201\":\"created\""))
+				return ResponseEntity.status(HttpStatus.CREATED).body(response);
+			else
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+		}
+		
+		System.out.println(response);
+		if (response.contains("\"201\":\"created\""))
+			return ResponseEntity.status(HttpStatus.CREATED).body(response);
+		else
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	}
+
 	// Delete Methods 
 	@RequestMapping(value = "/statements", method = RequestMethod.DELETE,produces= {MediaType.APPLICATION_JSON_VALUE,APPLICATION_JSON_LD,APPLICATION_JSON_NGSI})
 	@ResponseBody
