@@ -9,7 +9,7 @@
     }
   },
   "host": "platform.fiwoo.eu",
-  "basePath": "/api/rules",
+  "basePath": "/rules",
   "tags": [
     {
       "name": "perseo-controller",
@@ -28,7 +28,9 @@
           "application/json"
         ],
         "produces": [
-          "application/json"
+          "application/json",
+          "application/json+NGSI",
+          "application/json+LD"
         ],
         "parameters": [
           {
@@ -38,6 +40,48 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/addRule"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/AddResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/statements/basic/add": {
+      "post": {
+        "tags": [
+          "perseo-controller"
+        ],
+        "summary": "addBasicRule",
+        "operationId": "addBasicRule",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json",
+          "application/json+NGSI",
+          "application/json+LD"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/addBasicRule"
             }
           }
         ],
@@ -68,7 +112,9 @@
           "application/json"
         ],
         "produces": [
-          "application/json"
+          "application/json",
+          "application/json+NGSI",
+          "application/json+LD"
         ],
         "responses": {
           "200": {
@@ -210,6 +256,54 @@
       "properties": {
         "rule": {
           "type": "object"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "addBasicRule": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "text": {
+          "type": "object",
+          "properties": {
+            "sensorID": {
+              "type": "string"
+            },
+            "sensorType": {
+              "type": "string"
+            },
+            "attributes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  },
+                  "operator": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "action": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
         },
         "description": {
           "type": "string"
