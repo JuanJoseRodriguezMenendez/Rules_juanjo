@@ -6,6 +6,11 @@ import java.io.FileReader;
 import java.io.UnsupportedEncodingException;
 import org.apache.commons.codec.binary.Base64;
 
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.codec.binary.Base64;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.MediaType;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -23,6 +29,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.internal.LinkedTreeMap;
@@ -34,18 +41,22 @@ import fiwoo.microservices.rules_External_Actions.fiwoo_rules_External_Actions.L
 public class PerseoController {
 
 	private static final String SECRET = System.getenv("SECRET");
-	
+	private static final String APPLICATION_JSON_NGSI = "application/ngsi+json";
+	private static final String APPLICATION_JSON_LD = "application/ld+json";
 	private static Logic logic;
 	
+	@Autowired
+	private HttpServletRequest context; 
 	public PerseoController() {
 		logic = new Logic();
 	}
 	
 	// Get Methods
-	@RequestMapping(method = RequestMethod.GET, value = "/statements", headers="Accept=application/json, application/ld+json, application/ngsi+json")
-	public ResponseEntity getRules(@RequestHeader("X-Authorization-s4c") String jwtHeader, @RequestHeader("Accept") String acceptHeader) throws IllegalArgumentException, UnsupportedEncodingException {
+	@RequestMapping(method = RequestMethod.GET, value = "/statements", produces= {MediaType.APPLICATION_JSON_VALUE,APPLICATION_JSON_LD,APPLICATION_JSON_NGSI})
+	public ResponseEntity getRules(@RequestHeader("X-Authorization-s4c") String jwtHeader) throws IllegalArgumentException, UnsupportedEncodingException {
 		//String jwtHeader="eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.eusFgDqmqIg3_c8buW6ohKCKILHI2Q3ImIoEjSr2Ih42RikUorPy-AntxBrtt82Fc1lnJD9HwF5wnuY76Ezehw";	
 		//**
+		 String  acceptHeader= context.getHeader("Accept");
 		String result = logic.getRulesOfUser(decodeUserIdFromJWT(jwtHeader));
 		if(acceptHeader.equals("application/ld+json")) {
 			result = transformJsonLd(result);
@@ -55,7 +66,7 @@ public class PerseoController {
 		return ResponseEntity.status(HttpStatus.OK).body(result);
 	}
     
-	@RequestMapping(method = RequestMethod.GET, value = "/swagger", headers="Accept=application/json , application/ld+json, application/ngsi+json")
+	@RequestMapping(method = RequestMethod.GET, value = "/swagger", produces= {MediaType.APPLICATION_JSON_VALUE,APPLICATION_JSON_LD,APPLICATION_JSON_NGSI})
 	public ResponseEntity  getSwagger() {
 		File archivo = null;
 	      FileReader fr = null;
@@ -104,9 +115,11 @@ public class PerseoController {
 	 * 	 "rule" : {rule_JSON} }	* 
 	 * 
 	 */
-	@RequestMapping(value = "/statements/advanced/add", method = RequestMethod.POST, headers="Accept=application/json , application/ld+json, application/ngsi+json", consumes = {"application/json"})
+
+	@RequestMapping(value = "/statements/advanced/add", method = RequestMethod.POST, produces= {MediaType.APPLICATION_JSON_VALUE,APPLICATION_JSON_LD,APPLICATION_JSON_NGSI})
 	@ResponseBody
-	public ResponseEntity addRule(@RequestBody String body, @RequestHeader("X-Authorization-s4c") String jwtHeader, @RequestHeader("Accept") String acceptHeader) throws IllegalArgumentException, UnsupportedEncodingException {		
+	public ResponseEntity addRule(@RequestBody String body, @RequestHeader("X-Authorization-s4c") String jwtHeader) throws IllegalArgumentException, UnsupportedEncodingException {		
+		String  acceptHeader= context.getHeader("Accept");
 		Gson gson = new GsonBuilder().serializeNulls().create();
 		gson.serializeNulls();
 		Object body_aux = gson.fromJson(body, Object.class);
@@ -130,7 +143,36 @@ public class PerseoController {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 		}
 		//**
+
+		System.out.println(response);
+		if (response.contains("\"201\":\"created\""))
+			return ResponseEntity.status(HttpStatus.CREATED).body(response);
+		else
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	}
+
+	@RequestMapping(value = "/statements/basic/add", method = RequestMethod.POST, produces= {MediaType.APPLICATION_JSON_VALUE,APPLICATION_JSON_LD,APPLICATION_JSON_NGSI})
+	@ResponseBody
+	public ResponseEntity addBasicRule(@RequestBody String body, @RequestHeader("X-Authorization-s4c") String jwtHeader) throws IllegalArgumentException, UnsupportedEncodingException {		
+		String  acceptHeader= context.getHeader("Accept");
+		String description = "no description";
+		JsonParser jp = new JsonParser();
+		JsonObject jo=(JsonObject) jp.parse(body);
 		
+		String advancedRule=AdvancedRulesGenerator.ruleConstructor(jo.toString());
+		if(jo.get("description")!=null) {
+			description = jo.get("description").toString();
+		}
+		String response = logic.parseAdvancedRule(AdvancedRulesGenerator.getJson(advancedRule, "rule").toString(), decodeUserIdFromJWT(jwtHeader), description);
+		//**
+		if(acceptHeader.equals("application/ld+json")) {
+			response = transformJsonLd(response);
+			if (response.contains("\"201\":\"created\""))
+				return ResponseEntity.status(HttpStatus.CREATED).body(response);
+			else
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+		}
+
 		System.out.println(response);
 		if (response.contains("\"201\":\"created\""))
 			return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -139,12 +181,12 @@ public class PerseoController {
 	}
 
 	// Delete Methods 
-	@RequestMapping(value = "/statements", method = RequestMethod.DELETE, headers= {"Accept=application/json , application/ld+json, application/ngsi+json"})
+	@RequestMapping(value = "/statements", method = RequestMethod.DELETE,produces= {MediaType.APPLICATION_JSON_VALUE,APPLICATION_JSON_LD,APPLICATION_JSON_NGSI})
 	@ResponseBody
-	public ResponseEntity deleteRule(@RequestParam("rule_name") String rule_name, @RequestHeader("X-Authorization-s4c") String jwtHeader, @RequestHeader("Accept") String acceptHeader) {
+	public ResponseEntity deleteRule(@RequestParam("rule_name") String rule_name, @RequestHeader("X-Authorization-s4c") String jwtHeader) {
 		//**
 		String response = logic.deleteRuleAndSubscription(decodeUserIdFromJWT(jwtHeader), rule_name);
-
+		String  acceptHeader= context.getHeader("Accept");
 		if(acceptHeader.equals("application/ld+json")) {
 			response =  transformJsonLd(response);
 			if (response.contains("\"error\" : \"Rule does not exist\""))
@@ -217,3 +259,4 @@ public class PerseoController {
 		return aux;
 	}
 }
+
