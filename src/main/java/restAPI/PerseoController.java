@@ -190,11 +190,12 @@ public class PerseoController {
 	
 	//transforma un json añadiendole los context por defecto
 	private String transformJsonLd(String originalJson) {
-		String[] contextos = {"https://w3c.github.io/wot/w3c-wot-td-context.jsonld", "https://w3c.github.io/wot/w3c-wot-common-context.jsonld"};
+		String[] contextos = {"https://www.w3.org/ns/activitystreams"};
 		JsonArray jarrcontext = createJarray(contextos);
 		JsonParser jp = new JsonParser();
 		JsonObject jsonobj = new JsonObject();
-		jsonobj = jp.parse(originalJson).getAsJsonObject();
+		String originalJsonld = formatLd(originalJson);
+		jsonobj = jp.parse(originalJsonld).getAsJsonObject();
 		jsonobj.add("@context", jarrcontext);	
 		return (jsonobj.toString()); 
 	}
@@ -206,5 +207,13 @@ public class PerseoController {
 			jarrcontext.add(context[i]);
 		}
 		return jarrcontext;
+	}
+	
+	public String formatLd(String original) {
+		String aux = original.substring(1, original.length());
+		aux = aux + "\"type\"" + ": \"Event\",";
+		//aux = aux + "\"name\"" + ": \"nombreEvento\",";
+		aux.replace("\"data\": [", "\"type\"" + ":  \"Collection\"," + "\r\n" + "\"items\": [");
+		return aux;
 	}
 }
